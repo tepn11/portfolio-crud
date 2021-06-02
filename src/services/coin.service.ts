@@ -18,7 +18,7 @@ export const find = async (id: string): Promise<ICoin | null> => {
 
 export const create = async (newCoin: ICoin): Promise<ICoin | null> => {
     const response = await CoinModel.create(newCoin);
-    console.log(response);
+    // console.log(response);
     return response;
 };
 
@@ -26,11 +26,25 @@ export const update = async (id: string, newCoinData: ICoin): Promise<ICoin | nu
     const idValid = mongoose.Types.ObjectId.isValid(id);
     if (idValid) {
         const response = await CoinModel.findByIdAndUpdate(id, newCoinData);
-        console.log(response);
+        // console.log(response);
         return response;
     } else {
         return null
     }
+};
+
+export const findBySymbol = async (value: string): Promise<ICoin[] | null> => {
+    const regExp = new RegExp(value, 'i');
+    const response = await CoinModel.find({ symbol: { $regex: regExp } }).exec();
+    // console.log('response', response);
+    return response;
+};
+
+export const findByName = async (value: string): Promise<ICoin[] | null> => {
+    const regExp = new RegExp(value, 'i');
+    const response = await CoinModel.find({ name: { $regex: regExp } }).exec();
+    // console.log('response', response);
+    return response;
 };
 
 export const remove = async (id: string): Promise<ICoin | null> => {
@@ -42,18 +56,3 @@ export const remove = async (id: string): Promise<ICoin | null> => {
         return null
     }
 };
-
-// export const update = async (
-//   id: number,
-//   itemUpdate: BaseItem
-// ): Promise<Item | null> => {
-//   const item = await find(id);
-
-//   if (!item) {
-//     return null;
-//   }
-
-//   items[id] = { id, ...itemUpdate };
-
-//   return items[id];
-// };

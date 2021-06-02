@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/coins', async (req: Request, res: Response) => {
     const response = await coinsService.findAll();
-    console.log(response);
+    // console.log(response);
     res.send(response);
 })
 
@@ -16,13 +16,40 @@ router.post('/coin/', async (req: Request, res: Response) => {
     res.send('New coin created');
 })
 
+router.get('/coin/findBySymbol', async (req: Request, res: Response) => {
+    const value = String(req.query?.value);
+    if (!value) {
+        return res.send({ msg: 'No documents found in search'});
+    } else {
+        const response = await coinsService.findBySymbol(value);
+        console.log('response', response);
+        if (!response || response === null) {
+            return res.send({ msg: 'No documents found in search'});
+        }
+        res.send(response);
+    }
+})
+
+router.get('/coin/findByName', async (req: Request, res: Response) => {
+    const value = String(req.query?.value);
+    if (!value) {
+        res.send({ msg: 'No documents found'});
+    }
+    const response = await coinsService.findByName(value);
+    console.log('response', response);
+    if (!response || response === null) {
+        return res.send({ msg: 'No documents found in search'});
+    }
+    res.send(response);
+})
+
 router.get('/coin/:id', async (req: Request, res: Response) => {
     const id = req.params?.id
     if (!id) {
         return res.end(500)
     }
     const response = await coinsService.find(id);
-    console.log(response);
+    // console.log(response);
     if (!response || response === null) {
         return res.send({ msg: 'No document found'});
     }
@@ -36,7 +63,7 @@ router.put('/coin/:id', async (req: Request, res: Response) => {
         return res.end(500)
     }
     const response = await coinsService.update(id, body);
-    console.log(response);
+    // console.log(response);
     if (!response || response === null) {
         return res.send({ msg: 'Could not update coin'});
     }
@@ -49,7 +76,7 @@ router.delete('/coin/:id', async (req: Request, res: Response) => {
         return res.end(500)
     }
     const response = await coinsService.remove(id);
-    console.log(response);
+    // console.log(response);
     if (!response || response === null) {
         return res.send({ msg: 'No document found'});
     }
