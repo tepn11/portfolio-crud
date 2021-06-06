@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -42,14 +61,38 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.remove = exports.findByName = exports.findBySymbol = exports.update = exports.create = exports.find = exports.findAll = void 0;
 var mongoose_1 = __importDefault(require("mongoose"));
 var coin_1 = require("../models/coin");
+var priceService = __importStar(require("./binance.service"));
 var findAll = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var response, getPricesPromiseArray, newValue;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, coin_1.CoinModel.find({}).exec()];
             case 1:
                 response = _a.sent();
-                return [2 /*return*/, response];
+                getPricesPromiseArray = [];
+                response.forEach(function (coin) {
+                    getPricesPromiseArray.push(priceService.getCoinPrice(coin.symbol));
+                });
+                return [4 /*yield*/, Promise.all(getPricesPromiseArray)
+                        .then(function (res) {
+                        var newList = res.map(function (price, i) {
+                            return {
+                                _id: response[i]._id,
+                                symbol: response[i].symbol,
+                                name: response[i].name,
+                                boughtPrice: response[i].boughtPrice,
+                                boughtAmount: response[i].boughtAmount,
+                                currentPrice: Number(price)
+                            };
+                        });
+                        return newList;
+                    }).catch(function (err) {
+                        console.error(err);
+                        return null;
+                    })];
+            case 2:
+                newValue = _a.sent();
+                return [2 /*return*/, newValue];
         }
     });
 }); };
@@ -71,14 +114,25 @@ var find = function (id) { return __awaiter(void 0, void 0, void 0, function () 
 }); };
 exports.find = find;
 var create = function (newCoin) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
+    var coinValid, response, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, coin_1.CoinModel.create(newCoin)];
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                return [4 /*yield*/, priceService.getCoinPrice(newCoin.symbol)];
             case 1:
+                coinValid = _a.sent();
+                if (!coinValid) return [3 /*break*/, 3];
+                return [4 /*yield*/, coin_1.CoinModel.create(newCoin)];
+            case 2:
                 response = _a.sent();
                 // console.log(response);
                 return [2 /*return*/, response];
+            case 3: return [2 /*return*/, null];
+            case 4:
+                error_1 = _a.sent();
+                return [2 /*return*/, null];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -101,7 +155,7 @@ var update = function (id, newCoinData) { return __awaiter(void 0, void 0, void 
 }); };
 exports.update = update;
 var findBySymbol = function (value) { return __awaiter(void 0, void 0, void 0, function () {
-    var regExp, response;
+    var regExp, response, getPricesPromiseArray, newValue;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -109,14 +163,36 @@ var findBySymbol = function (value) { return __awaiter(void 0, void 0, void 0, f
                 return [4 /*yield*/, coin_1.CoinModel.find({ symbol: { $regex: regExp } }).exec()];
             case 1:
                 response = _a.sent();
-                console.log('response', response);
-                return [2 /*return*/, response];
+                getPricesPromiseArray = [];
+                response.forEach(function (coin) {
+                    getPricesPromiseArray.push(priceService.getCoinPrice(coin.symbol));
+                });
+                return [4 /*yield*/, Promise.all(getPricesPromiseArray)
+                        .then(function (res) {
+                        var newList = res.map(function (price, i) {
+                            return {
+                                _id: response[i]._id,
+                                symbol: response[i].symbol,
+                                name: response[i].name,
+                                boughtPrice: response[i].boughtPrice,
+                                boughtAmount: response[i].boughtAmount,
+                                currentPrice: Number(price)
+                            };
+                        });
+                        return newList;
+                    }).catch(function (err) {
+                        console.error(err);
+                        return null;
+                    })];
+            case 2:
+                newValue = _a.sent();
+                return [2 /*return*/, newValue];
         }
     });
 }); };
 exports.findBySymbol = findBySymbol;
 var findByName = function (value) { return __awaiter(void 0, void 0, void 0, function () {
-    var regExp, response;
+    var regExp, response, getPricesPromiseArray, newValue;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -124,8 +200,30 @@ var findByName = function (value) { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, coin_1.CoinModel.find({ name: { $regex: regExp } }).exec()];
             case 1:
                 response = _a.sent();
-                console.log('response', response);
-                return [2 /*return*/, response];
+                getPricesPromiseArray = [];
+                response.forEach(function (coin) {
+                    getPricesPromiseArray.push(priceService.getCoinPrice(coin.symbol));
+                });
+                return [4 /*yield*/, Promise.all(getPricesPromiseArray)
+                        .then(function (res) {
+                        var newList = res.map(function (price, i) {
+                            return {
+                                _id: response[i]._id,
+                                symbol: response[i].symbol,
+                                name: response[i].name,
+                                boughtPrice: response[i].boughtPrice,
+                                boughtAmount: response[i].boughtAmount,
+                                currentPrice: Number(price)
+                            };
+                        });
+                        return newList;
+                    }).catch(function (err) {
+                        console.error(err);
+                        return null;
+                    })];
+            case 2:
+                newValue = _a.sent();
+                return [2 /*return*/, newValue];
         }
     });
 }); };

@@ -1,9 +1,32 @@
 import mongoose from 'mongoose';
 import { ICoin, CoinModel } from '../models/coin'
+import * as priceService from './binance.service'
 
-export const findAll = async (): Promise<ICoin[]> => {
+export const findAll = async (): Promise<ICoin[] | null> => {
     const response = await CoinModel.find({}).exec();
-    return response;
+    const getPricesPromiseArray: Promise<string>[] = [];
+    response.forEach(coin => {
+        getPricesPromiseArray.push(priceService.getCoinPrice(coin.symbol))
+    });
+    const newValue = await Promise.all(getPricesPromiseArray)
+    .then(res => {
+        const newList = res.map((price, i) => {
+            return {
+                _id: response[i]._id,
+                symbol: response[i].symbol,
+                name: response[i].name,
+                boughtPrice: response[i].boughtPrice,
+                boughtAmount: response[i].boughtAmount,
+                currentPrice: Number(price)
+            };
+        });
+        return newList;
+    }).catch(err => {
+        console.error(err);
+        return null
+    })
+    return newValue as ICoin[];
+    
 };
 
 export const find = async (id: string): Promise<ICoin | null> => {
@@ -17,9 +40,18 @@ export const find = async (id: string): Promise<ICoin | null> => {
 };
 
 export const create = async (newCoin: ICoin): Promise<ICoin | null> => {
-    const response = await CoinModel.create(newCoin);
-    // console.log(response);
-    return response;
+    try {
+        const coinValid = await priceService.getCoinPrice(newCoin.symbol);
+        if (coinValid) {
+            const response = await CoinModel.create(newCoin);
+            // console.log(response);
+            return response;
+        }
+        return null;
+    } catch (error) {
+        return null;
+    }
+    
 };
 
 export const update = async (id: string, newCoinData: ICoin): Promise<ICoin | null> => {
@@ -36,15 +68,55 @@ export const update = async (id: string, newCoinData: ICoin): Promise<ICoin | nu
 export const findBySymbol = async (value: string): Promise<ICoin[] | null> => {
     const regExp = new RegExp(value, 'i');
     const response = await CoinModel.find({ symbol: { $regex: regExp } }).exec();
-    // console.log('response', response);
-    return response;
+    const getPricesPromiseArray: Promise<string>[] = [];
+    response.forEach(coin => {
+        getPricesPromiseArray.push(priceService.getCoinPrice(coin.symbol))
+    });
+    const newValue = await Promise.all(getPricesPromiseArray)
+    .then(res => {
+        const newList = res.map((price, i) => {
+            return {
+                _id: response[i]._id,
+                symbol: response[i].symbol,
+                name: response[i].name,
+                boughtPrice: response[i].boughtPrice,
+                boughtAmount: response[i].boughtAmount,
+                currentPrice: Number(price)
+            };
+        });
+        return newList;
+    }).catch(err => {
+        console.error(err);
+        return null
+    })
+    return newValue as ICoin[];
 };
 
 export const findByName = async (value: string): Promise<ICoin[] | null> => {
     const regExp = new RegExp(value, 'i');
     const response = await CoinModel.find({ name: { $regex: regExp } }).exec();
-    // console.log('response', response);
-    return response;
+    const getPricesPromiseArray: Promise<string>[] = [];
+    response.forEach(coin => {
+        getPricesPromiseArray.push(priceService.getCoinPrice(coin.symbol))
+    });
+    const newValue = await Promise.all(getPricesPromiseArray)
+    .then(res => {
+        const newList = res.map((price, i) => {
+            return {
+                _id: response[i]._id,
+                symbol: response[i].symbol,
+                name: response[i].name,
+                boughtPrice: response[i].boughtPrice,
+                boughtAmount: response[i].boughtAmount,
+                currentPrice: Number(price)
+            };
+        });
+        return newList;
+    }).catch(err => {
+        console.error(err);
+        return null
+    })
+    return newValue as ICoin[];
 };
 
 export const remove = async (id: string): Promise<ICoin | null> => {

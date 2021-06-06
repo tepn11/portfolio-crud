@@ -61,6 +61,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Router = void 0;
 var express_1 = __importDefault(require("express"));
 var coinsService = __importStar(require("./services/coin.service"));
+var priceService = __importStar(require("./services/binance.service"));
 var router = express_1.default.Router();
 exports.Router = router;
 router.get('/coins', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -82,11 +83,16 @@ router.post('/coin/', function (req, res) { return __awaiter(void 0, void 0, voi
         switch (_a.label) {
             case 0:
                 body = req.body;
-                console.log(body);
                 return [4 /*yield*/, coinsService.create(body)];
             case 1:
                 response = _a.sent();
-                res.send('New coin created');
+                console.log('response in route', response);
+                if (response) {
+                    return [2 /*return*/, res.send({ success: true, msg: 'New coin added' })];
+                }
+                else {
+                    return [2 /*return*/, res.send({ success: false, msg: 'Error adding coin' })];
+                }
                 return [2 /*return*/];
         }
     });
@@ -98,18 +104,18 @@ router.get('/coin/findBySymbol', function (req, res) { return __awaiter(void 0, 
         switch (_b.label) {
             case 0:
                 value = String((_a = req.query) === null || _a === void 0 ? void 0 : _a.value);
-                if (!value) {
-                    res.send({ msg: 'No documents found' });
-                }
-                return [4 /*yield*/, coinsService.findBySymbol(value)];
-            case 1:
+                if (!!value) return [3 /*break*/, 1];
+                return [2 /*return*/, res.send({ msg: 'No documents found in search' })];
+            case 1: return [4 /*yield*/, coinsService.findBySymbol(value)];
+            case 2:
                 response = _b.sent();
                 console.log('response', response);
                 if (!response || response === null) {
                     return [2 /*return*/, res.send({ msg: 'No documents found in search' })];
                 }
                 res.send(response);
-                return [2 /*return*/];
+                _b.label = 3;
+            case 3: return [2 /*return*/];
         }
     });
 }); });
@@ -175,7 +181,7 @@ router.put('/coin/:id', function (req, res) { return __awaiter(void 0, void 0, v
                 if (!response || response === null) {
                     return [2 /*return*/, res.send({ msg: 'Could not update coin' })];
                 }
-                res.send({ msg: 'Coin updated' });
+                res.send({ success: true, msg: 'Coin updated' });
                 return [2 /*return*/];
         }
     });
@@ -197,7 +203,23 @@ router.delete('/coin/:id', function (req, res) { return __awaiter(void 0, void 0
                 if (!response || response === null) {
                     return [2 /*return*/, res.send({ msg: 'No document found' })];
                 }
-                res.send({ msg: 'Coin successfully deleted' });
+                res.send({ success: true, msg: 'Coin successfully deleted' });
+                return [2 /*return*/];
+        }
+    });
+}); });
+router.get('/coinPrice', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var coin, response;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                coin = String((_a = req.query) === null || _a === void 0 ? void 0 : _a.coin);
+                return [4 /*yield*/, priceService.getCoinPrice(coin)];
+            case 1:
+                response = _b.sent();
+                console.log(response);
+                res.send(response);
                 return [2 /*return*/];
         }
     });

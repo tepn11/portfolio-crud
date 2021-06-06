@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express'
 import * as coinsService from './services/coin.service'
+import * as priceService from './services/binance.service'
 
 const router = express.Router();
 
@@ -11,9 +12,14 @@ router.get('/coins', async (req: Request, res: Response) => {
 
 router.post('/coin/', async (req: Request, res: Response) => {
     const body = req.body;
-    console.log(body);
     const response = await coinsService.create(body);
-    res.send('New coin created');
+    console.log('response in route', response);
+    if (response) {
+        return res.send({ success: true, msg: 'New coin added'});
+    } else {
+        return res.send({ success: false, msg: 'Error adding coin'});
+    }
+    
 })
 
 router.get('/coin/findBySymbol', async (req: Request, res: Response) => {
@@ -67,7 +73,7 @@ router.put('/coin/:id', async (req: Request, res: Response) => {
     if (!response || response === null) {
         return res.send({ msg: 'Could not update coin'});
     }
-    res.send({ msg: 'Coin updated'});
+    res.send({ success: true, msg: 'Coin updated'});
 })
 
 router.delete('/coin/:id', async (req: Request, res: Response) => {
@@ -80,7 +86,14 @@ router.delete('/coin/:id', async (req: Request, res: Response) => {
     if (!response || response === null) {
         return res.send({ msg: 'No document found'});
     }
-    res.send({ msg: 'Coin successfully deleted'});
+    res.send({ success: true, msg: 'Coin successfully deleted'});
+})
+
+router.get('/coinPrice', async (req: Request, res: Response) => {
+    const coin: string | undefined = String(req.query?.coin);
+    const response = await priceService.getCoinPrice(coin);
+    console.log(response);
+    res.send(response);
 })
 
 export { router as Router }
